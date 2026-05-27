@@ -5,12 +5,7 @@ import coursesRouter from './routes/courses.js';
 import modulesRouter from './routes/modules.js';
 import subjectsRouter from './routes/subjects.js';
 import enrollmentsRouter from './routes/enrollments.js';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { existsSync } from 'fs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -54,17 +49,7 @@ app.get('/api/dashboard', (req, res) => {
   });
 });
 
-// Serve frontend static files
-const publicPath = join(__dirname, '..', 'public');
-if (existsSync(publicPath)) {
-  app.use(express.static(publicPath));
-  // SPA fallback
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(join(publicPath, 'index.html'));
-    }
-  });
-}
+
 
 // Initialize DB and start
 await initDb();
@@ -78,6 +63,5 @@ console.log(`📊 DB: ${c.c} cursos, ${m.c} módulos, ${s.c} disciplinas, ${e.c}
 
 app.listen(PORT, () => {
   console.log(`🎓 Cursos Livres API rodando em http://localhost:${PORT}`);
-  console.log(`   Frontend: http://localhost:${PORT}`);
-  console.log(`   API: http://localhost:${PORT}/api`);
+
 });
