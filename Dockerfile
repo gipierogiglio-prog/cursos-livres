@@ -8,8 +8,9 @@ RUN cd frontend && npm install
 COPY frontend/ ./frontend/
 RUN cd frontend && npx vite build
 
-# Prepare backend
+# Prepare backend - copy everything
 COPY backend/package.json ./backend/
+COPY backend/src ./backend/src
 RUN cd backend && npm install
 
 FROM node:20-alpine
