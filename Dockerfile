@@ -1,25 +1,28 @@
-FROM node:20-alpine AS backend
-WORKDIR /app/backend
-COPY backend/package.json ./
-RUN npm install --production
-COPY backend/src ./src
-RUN mkdir -p data
+FROM node:20-alpine AS builder
 
-FROM node:20-alpine AS frontend-build
-WORKDIR /app/frontend
-COPY frontend/package.json ./
-RUN npm install
-COPY frontend/ ./
-RUN npx vite build
+WORKDIR /app
+
+# Build frontend
+COPY frontend/package.json ./frontend/
+RUN cd frontend && npm install
+COPY frontend/ ./frontend/
+RUN cd frontend && npx vite build
+
+# Prepare backend
+COPY backend/package.json ./backend/
+RUN cd backend && npm install
 
 FROM node:20-alpine
-WORKDIR /app
-COPY --from=backend /app/backend ./backend
-COPY --from=frontend-build /app/frontend/dist ./frontend/dist
 
-RUN npm install -g serve
+WORKDIR /app
+
+COPY --from=builder /app/backend/node_modules ./backend/node_modules
+COPY --from=builder /app/backend/src ./backend/src
+COPY --from=builder /app/frontend/dist ./backend/public
+COPY --from=builder /app/backend/package.json ./backend/
+
+RUN mkdir -p /app/backend/data
 
 EXPOSE 3002
-EXPOSE 5173
 
-CMD sh -c "node backend/src/index.js & serve -s frontend/dist -l 5173 --cors & wait"
+CMD ["node", "backend/src/index.js"]
